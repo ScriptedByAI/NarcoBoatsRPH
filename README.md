@@ -12,7 +12,7 @@ A RagePluginHook plugin for GTA V that puts you in command of coastal defense op
 
 ### Customization
 - **Multiple Helicopter Options**: Hunter, Buzzard, Savage, or Annihilator
-- **Flexible Spawn Locations**: Beach, Fort Zancudo, or random deployment
+- **Flexible Spawn Locations**: Beach, Fort Zancudo, Sandy Shores, Airport, or random deployment
 - **Full INI Configuration**: Customize difficulty, boats, waves, and more
 - **Adjustable Drug Cargo**: Control visual contraband package density
 
@@ -24,58 +24,53 @@ A RagePluginHook plugin for GTA V that puts you in command of coastal defense op
 - **Career Statistics**: Track missions completed and personal records
 - **Mission Briefings**: Detailed operation orders before each deployment
 
-### Quality of Life
-- **Smart Audio System**: Uses LSPDFR standard audio path
-- **Enhanced Notifications**: Color-coded, professional mission updates
-- **Auto-Configuration**: Creates default config on first run
-- **Persistent Statistics**: Track your performance across sessions
-
 ## 📋 Requirements
 
 - Grand Theft Auto V
 - RagePluginHook (latest version)
 - LSPDFR (optional but recommended)
+- EUP (optional but recommended)
 
 ## 🔧 Installation
 
-### Installation Steps
+**EASY INSTALLATION - Everything is pre-organized!**
 
-1. **Download the latest release** from the releases page
+1. **Download the latest release** and extract the ZIP file
 
-2. **Extract the DLL file:**
+2. **Copy all files to your GTA V directory:**
+   - Simply drag the `lspdfr` and `plugins` folders into your GTA V root directory
+   - Drag all the `.dll` files (NAudio files and RAGENativeUI.dll) into your GTA V root directory
+   
+   Your GTA V folder should look like this:
    ```
    Grand Theft Auto V/
-   └── Plugins/
-       └── NarcoBoatsRPH.dll
-   ```
-
-3. **The plugin will auto-generate config on first run:**
-   ```
-   Grand Theft Auto V/
-   └── Plugins/
+   ├── NAudio.dll
+   ├── NAudio_Asio.dll
+   ├── NAudio_Core.dll
+   ├── NAudio_Midi.dll
+   ├── NAudio_Wasapi.dll
+   ├── NAudio_WinForms.dll
+   ├── NAudio_WinMM.dll
+   ├── RAGENativeUI.dll
+   ├── lspdfr/
+   │   └── audio/
+   │       └── scanner/
+   │           └── NarcoBoats/
+   │               └── (your WAV files go here)
+   └── plugins/
+       ├── NarcoBoatsRPH.dll
        └── NarcoBoatsRPH.ini
    ```
 
-4. **(Optional) Add radio chatter audio:**
-   ```
-   Grand Theft Auto V/
-   └── lspdfr/
-       └── audio/
-           └── scanner/
-               └── NarcoBoats/
-                   ├── contact.wav
-                   ├── hit.wav
-                   ├── splash.wav
-                   └── [your other WAV files]
-   ```
+3. **Launch GTA V through RagePluginHook**
 
-5. **Launch GTA V through RagePluginHook**
+4. **Press F6** (or your configured hotkey) to start a mission
 
-6. **Press F6** (or your configured hotkey) to start a mission
+**That's it!** The folder structure is already set up for you - everything will be in the right place automatically.
 
 ## ⚙️ Configuration
 
-The plugin automatically creates a `NarcoBoatsRPH.ini` file in the `Plugins/` folder on first run.
+The plugin includes a pre-configured `NarcoBoatsRPH.ini` file in the `plugins/` folder.
 
 ### Configuration Options
 
@@ -98,16 +93,21 @@ MinDrugProps=6
 MaxDrugProps=10
 
 # Audio folder for radio chatter WAV files
-# Uses standard LSPDFR audio location
 AudioFolder=lspdfr\audio\scanner\NarcoBoats\
+
+# Enable/disable radio chatter audio
+EnableAudio=true
+
+# Audio volume (0.0 to 1.0)
+AudioVolume=0.5
 
 # Helicopter model
 # Options: HUNTER, BUZZARD, SAVAGE, ANNIHILATOR
 HelicopterModel=HUNTER
 
 # Spawn location
-# Options: Beach, Fort, Random
-SpawnLocation=Random
+# Options: Beach, Airport, Sandy, Fort, Random
+SpawnLocation=Fort
 ```
 
 ### Available Hotkeys
@@ -121,8 +121,10 @@ You can use any F-key: `F6`, `F7`, `F8`, `F9`, `F10`, `F11`, `F12`
 
 ### Spawn Locations
 - **Beach** - Vespucci Beach helipad (scenic ocean view)
+- **Airport** - LSIA northeast gate (civilian airport)
+- **Sandy** - Sandy Shores Airfield (desert location)
 - **Fort** - Fort Zancudo military base (authentic military start)
-- **Random** - Randomizes between Beach, Fort, and Airport (variety)
+- **Random** - Randomizes between all locations (variety)
 
 ## 🎙️ Adding Radio Chatter (Optional)
 
@@ -139,19 +141,14 @@ Create WAV audio files with military-style callouts:
 - "Continue engagement"
 - "Confirmed kill"
 
-### Step 2: Place Files in Correct Location
+### Step 2: Place Files in Audio Folder
 
-Place WAV files in:
-```
-C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V\lspdfr\audio\scanner\NarcoBoats\
-```
+**The audio folder is already created for you!**
 
-Or if you have a non-Steam installation:
+Simply place your WAV files in:
 ```
-[Your GTA V Path]\lspdfr\audio\scanner\NarcoBoats\
+Grand Theft Auto V\lspdfr\audio\scanner\NarcoBoats\
 ```
-
-**Important:** The folder structure must exist. Create any missing folders.
 
 ### Step 3: File Format Requirements
 - **Format:** WAV only (MP3/OGG will not work)
@@ -185,17 +182,17 @@ Or if you have a non-Steam installation:
 - Complete all waves to finish the operation successfully
 
 ### Performance Ratings
-- **Excellent:** 10+ kills per minute
-- **Good:** 7-10 kills per minute
-- **Adequate:** 5-7 kills per minute
-- **Needs Improvement:** Under 5 kills per minute
+- **Excellent:** 4+ kills per minute
+- **Good:** 3 kills per minute
+- **Adequate:** 2 kills per minute
+- **Needs Improvement:** Under 1 kills per minute
 
 ## 🛠️ Troubleshooting
 
 ### Plugin Won't Load
 - Ensure RagePluginHook is up to date
 - Check `RagePluginHook.log` for errors
-- Verify `NarcoBoatsRPH.dll` is in the `Plugins/` folder
+- Verify all NAudio DLL files are in your GTA V root directory
 - Make sure you're running GTA V through RagePluginHook, not Steam/Rockstar directly
 
 ### Boats Not Spawning
@@ -216,23 +213,11 @@ Or if you have a non-Steam installation:
 - Use explosive cannon if homing missiles fail
 - Get closer to targets for better lock-on
 
-### Boat Blips Are White Instead of Red
-- This should be fixed in the latest version
-- If still occurring, reload the plugin (F4 → Reload Plugins)
-- Check that you're using the latest version of the mod
-
 ### No Radio Chatter Playing
 - Verify WAV files are in: `lspdfr\audio\scanner\NarcoBoats\`
-- Check `AudioFolder` path in `NarcoBoatsRPH.ini`
 - Files **must** be in WAV format (not MP3/OGG)
+- Check `EnableAudio=true` in the INI file
 - Check RagePluginHook.log for audio errors
-- Make sure the folder exists (create it if missing)
-
-### GTA V Audio Not Working
-- This should be fixed in the latest version (audio path updated)
-- Restart GTA V and RagePluginHook completely
-- Check Windows audio mixer - ensure GTA V isn't muted
-- Verify other mods aren't conflicting with audio system
 
 ### Performance Issues
 - Lower `StartingBoatCount` and `BoatsPerWave` values
@@ -245,48 +230,34 @@ Or if you have a non-Steam installation:
 
 The mod tracks your performance across sessions:
 - **Missions Completed** - Total operations finished
-- **Best Wave Record** - Highest wave reached
-- **Best Time** - Fastest mission completion
 - **Performance Ratings** - Based on kills per minute
 
 Statistics are displayed at mission completion and persist across game sessions.
 
-## 🎯 What's New in Latest Version
+## 🎯 What's New in Version 1.0
 
-### Version 1.0.1 Updates
-- ✅ **Fixed audio path** - Now uses LSPDFR standard location
-- ✅ **Fixed white blips** - Boats now properly show as red enemies
-- ✅ **Fixed GTA V audio** - No more audio conflicts
-- ✅ **Enhanced HUD** - Color-coded mission stats
+### Features
+- ✅ **Wave-based combat** - Progressive difficulty with multiple waves
+- ✅ **Multiple spawn locations** - Beach, Airport, Sandy Shores, Fort Zancudo, or Random
+- ✅ **Helicopter selection** - Choose from Hunter, Buzzard, Savage, or Annihilator
+- ✅ **Radio chatter support** - Optional military communications
+- ✅ **Enhanced HUD** - Color-coded mission stats and real-time tracking
 - ✅ **Performance ratings** - Get rated on combat effectiveness
-- ✅ **Career statistics** - Track missions and records
-- ✅ **Improved notifications** - Professional, color-coded updates
-- ✅ **Better audio system** - Async playback prevents conflicts
-
-See `ChangeLog.txt` for complete version history.
-
-## 💡 Planned Features (Future Updates)
-
-### Coming Soon
-- Additional helicopter models (Valkyrie, Akula)
-- Difficulty presets (Easy, Normal, Hard, Insane)
-- Mission failure conditions (boats reaching shore)
-- Custom blip colors by wave
-- Additional mission types
-
-### Under Consideration
-- Co-op support (multiplayer compatibility)
-- Achievement system
-- In-game statistics screen
-- Save/load best times
-- Medal/rank system based on performance
+- ✅ **Drug cargo visualization** - Boats loaded with visible contraband
+- ✅ **Professional notifications** - Clean, color-coded mission updates
+- ✅ **NAudio integration** - Non-blocking audio playback system
 
 ## 🤝 Credits
 
 **Author:** TheTechSupportDude (Daniel)  
-**Version:** 1.0.1  
-**Last Updated:** December 2025  
-**Built With:** C#, RagePluginHook, ScriptHookVDotNet principles
+**Version:** 1.0  
+**Release Date:** December 2025  
+**Built With:** C#, RagePluginHook, NAudio
+
+**Special Thanks:**
+- LSPDFR community
+- RagePluginHook developers
+- NAudio library developers
 
 ## ⚖️ Disclaimer
 
@@ -300,18 +271,12 @@ This mod is free to use and modify for personal use. Credit to the original auth
 
 For bug reports, suggestions, or support:
 - Post in the LSPDFR forums
-- Create an issue on GitHub (if available)
 - Check RagePluginHook.log for error details
-
-## 🙏 Acknowledgments
-
-Special thanks to:
-- The LSPDFR community
-- RagePluginHook developers
-- All beta testers and contributors
+- Report issues on the mod download page
+- Join my Discord https://discord.gg/Q8RNd2xKAH 
 
 ---
 
 **Enjoy your operations, Mr. Secretary!** 🚁💥
 
-*Remember: This is a game. Play responsibly and respect others.*
+*Remember: This is a game. Play responsibly and respect others.* 
