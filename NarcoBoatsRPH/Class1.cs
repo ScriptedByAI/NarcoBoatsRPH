@@ -67,12 +67,6 @@ namespace NarcoBoatsRPH
 
             // Start the main fiber
             missionFiber = GameFiber.StartNew(MainLoop);
-
-            // Keep plugin alive
-            while (true)
-            {
-                GameFiber.Sleep(1000);
-            }
         }
 
         public static void OnUnload(bool isTerminating)
