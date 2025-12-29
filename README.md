@@ -43,18 +43,12 @@ Celebrate with escalating intensity:
 - **Wave 3 / Mission Complete**: Full victory celebration
 - Victory audio never interrupts combat or gets cut off
 
-#### Configurable Notification Duration
-Adjust how long notifications stay on screen so you can read and enjoy them:
-- Default: 8 seconds
-- Range: 3-15 seconds
-- Perfect for savoring the satirical humor
-
 ## 📋 Requirements
 
 - **GTA V** (PC)
 - **Rage Plugin Hook (RPH)** - [Download](http://ragepluginhook.net/)
 - **LSPDFR** (optional but recommended) - [Download](https://www.lcpdfr.com/downloads/gta5mods/g17media/7792-lspd-first-response/)
-- **NAudio.dll** - Included with LSPDFR or available separately
+- **NAudio.dll** - Included in release .rar
 
 ## 💾 Installation
 
@@ -64,7 +58,7 @@ Adjust how long notifications stay on screen so you can read and enjoy them:
    - Install LSPDFR (optional)
 
 2. **Download the Mod**:
-   - Download the latest release from the [Releases page](https://github.com/yourusername/SecretaryOfWar/releases)
+   - Download the latest release from the [Releases page](https://github.com/ScriptedByAI/NarcoBoatsRPH/releases)
    - Extract the ZIP file
 
 3. **Install Plugin Files**:
@@ -133,10 +127,6 @@ SpawnLocation=Random
 
 ### Version 2.0 Settings
 ```ini
-# How long notifications stay on screen (3000-15000 milliseconds)
-# 8000 = 8 seconds (default), 10000 = 10 seconds (recommended)
-NotificationDuration=8000
-
 # Victory audio configuration
 EnableVictoryAudio=true
 PlayVictoryAudioAfterEachWave=true
@@ -213,9 +203,10 @@ AudioFolder=lspdfr\audio\scanner\NarcoBoats\
 - This was fixed in v2.0 - make sure you're using the latest version
 - Victory audio files should contain "trump_victory" in the filename
 
-### Notifications disappear too quickly
-- Increase `NotificationDuration` in the INI (recommend 10000 for 10 seconds)
-- Range is 3000-15000 milliseconds
+### Victory audio is too quiet or too loud
+- All three victory audio files should be normalized to the same volume level
+- Adjust `AudioVolume` in the INI (0.0 to 1.0)
+- You can use Audacity or similar tools to normalize audio levels
 
 ### Boats spawn incorrectly
 - This is usually fixed by restarting the mission
@@ -251,7 +242,7 @@ This mod is released under the MIT License. See LICENSE file for details.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/SecretaryOfWar/issues)
+- **Issues**: [GitHub Issues](https://github.com/ScriptedByAI/NarcoBoatsRPH/issues)
 - **Discord**: https://discord.gg/Q8RNd2xKAH 
 - **LSPDFR Forums**: https://www.lcpdfr.com/downloads/gta5mods/scripts/52879-secretary-of-war-simulator-operation-southern-spear/ 
 
