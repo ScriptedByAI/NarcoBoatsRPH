@@ -8,7 +8,7 @@ using System.Windows.Forms;
 using System.Linq;
 using NAudio.Wave;
 
-[assembly: Rage.Attributes.Plugin("SecretaryOfWar", Description = "Secretary of War Simulator: Operation Southern Spear", Author = "TheTechSupportDude")]
+[assembly: Rage.Attributes.Plugin("SecretaryOfWar", Description = "Secretary of War Simulator v2.0: Operation Southern Spear", Author = "TheTechSupportDude")]
 
 namespace NarcoBoatsRPH
 {
@@ -37,6 +37,20 @@ namespace NarcoBoatsRPH
         private static bool enableAudio = true;
         private static float audioVolume = 0.5f;
 
+        // NEW V2.0: Enhanced Victory audio configuration
+        private static bool enableVictoryAudio = true;
+        private static bool playVictoryAudioAfterEachWave = true;
+        private static bool useProgressiveVictoryAudio = true; // Escalates: short -> normal -> long
+        private static string victoryAudioShort = "trump_victory_short.wav";
+        private static string victoryAudioNormal = "trump_victory.wav";
+        private static string victoryAudioLong = "trump_victory_long.wav";
+
+        // NEW V2.0: Political consequences system
+        private static bool enablePoliticalConsequences = true;
+        private static bool enableMediaSpin = true;
+        private static bool enableBureaucracyHumor = true;
+        private static int politicalHeatLevel = 0; // Tracks escalating consequences
+
         // Wave system variables
         private static int currentWave = 1;
         private static int totalKills = 0;
@@ -50,9 +64,22 @@ namespace NarcoBoatsRPH
         private static TimeSpan bestTime = TimeSpan.MaxValue;
 
         // NAudio handling
-        private static List<string> audioFiles = new List<string>();
+        private static List<string> audioFiles = new List<string>(); // Random radio chatter (excludes victory audio)
         private static bool audioLoaded = false;
         private static WaveOutEvent outputDevice;
+
+        // NEW V2.0: Media outlets for spin system
+        private static readonly string[] liberalOutlets = new string[]
+        {
+            "MSNOW", "CNN", "The Washington Compost", "NPR",
+            "The New York Crimes", "MSDNC", "Fake News Network"
+        };
+
+        private static readonly string[] conservativeOutlets = new string[]
+        {
+            "Fox News", "Newsmax", "The Daily Wire", "OANN",
+            "The Federalist", "Breitbart", "Real News America"
+        };
 
         public static void Main()
         {
@@ -62,8 +89,8 @@ namespace NarcoBoatsRPH
             // Load audio files list
             LoadAudioFiles();
 
-            Game.LogTrivial("Secretary of War Simulator: Operation Southern Spear loaded!");
-            Game.DisplayNotification($"~b~SECWAR SIMULATOR~w~~n~~g~Operation Southern Spear loaded!~w~~n~Press ~y~{missionHotkey}~w~ to start mission");
+            Game.LogTrivial("Secretary of War Simulator v2.0: Operation Southern Spear loaded!");
+            Game.DisplayNotification($"~b~SECWAR SIMULATOR v2.0~w~~n~~g~Operation Southern Spear loaded!~w~~n~Press ~y~{missionHotkey}~w~ to start mission~n~~r~NEW: Political Consequences & More!");
 
             // Start the main fiber
             missionFiber = GameFiber.StartNew(MainLoop);
@@ -79,7 +106,7 @@ namespace NarcoBoatsRPH
                 outputDevice = null;
             }
 
-            Game.LogTrivial("Secretary of War Simulator unloaded");
+            Game.LogTrivial("Secretary of War Simulator v2.0 unloaded");
         }
 
         private static void LoadAudioFiles()
@@ -90,17 +117,37 @@ namespace NarcoBoatsRPH
 
                 if (Directory.Exists(fullPath))
                 {
-                    audioFiles = Directory.GetFiles(fullPath, "*.wav").ToList();
+                    // Get all WAV files
+                    var allAudioFiles = Directory.GetFiles(fullPath, "*.wav").ToList();
+
+                    // NEW V2.0: Filter out Trump victory audio files from random chatter
+                    audioFiles = allAudioFiles.Where(f =>
+                        !Path.GetFileName(f).ToLower().Contains("trump_victory")
+                    ).ToList();
 
                     if (audioFiles.Count > 0)
                     {
                         audioLoaded = true;
-                        Game.LogTrivial($"Loaded {audioFiles.Count} audio files from {audioFolder}");
+                        Game.LogTrivial($"Loaded {audioFiles.Count} radio chatter audio files (excluded victory audio)");
                     }
                     else
                     {
-                        Game.LogTrivial("No WAV files found in audio folder");
+                        Game.LogTrivial("No non-victory WAV files found in audio folder");
                         audioLoaded = false;
+                    }
+
+                    // Verify victory audio files exist
+                    string shortPath = Path.Combine(fullPath, victoryAudioShort);
+                    string normalPath = Path.Combine(fullPath, victoryAudioNormal);
+                    string longPath = Path.Combine(fullPath, victoryAudioLong);
+
+                    if (File.Exists(shortPath) && File.Exists(normalPath) && File.Exists(longPath))
+                    {
+                        Game.LogTrivial("All victory audio files verified");
+                    }
+                    else
+                    {
+                        Game.LogTrivial($"WARNING: Some victory audio files missing. Short: {File.Exists(shortPath)}, Normal: {File.Exists(normalPath)}, Long: {File.Exists(longPath)}");
                     }
                 }
                 else
@@ -185,10 +232,44 @@ namespace NarcoBoatsRPH
                             if (float.TryParse(value, out float volume))
                                 audioVolume = Math.Max(0f, Math.Min(volume, 1f));
                             break;
+                        // NEW V2.0 Config Options
+                        case "EnableVictoryAudio":
+                            if (bool.TryParse(value, out bool victoryEnabled))
+                                enableVictoryAudio = victoryEnabled;
+                            break;
+                        case "PlayVictoryAudioAfterEachWave":
+                            if (bool.TryParse(value, out bool afterEachWave))
+                                playVictoryAudioAfterEachWave = afterEachWave;
+                            break;
+                        case "UseProgressiveVictoryAudio":
+                            if (bool.TryParse(value, out bool progressive))
+                                useProgressiveVictoryAudio = progressive;
+                            break;
+                        case "VictoryAudioShort":
+                            victoryAudioShort = value;
+                            break;
+                        case "VictoryAudioNormal":
+                            victoryAudioNormal = value;
+                            break;
+                        case "VictoryAudioLong":
+                            victoryAudioLong = value;
+                            break;
+                        case "EnablePoliticalConsequences":
+                            if (bool.TryParse(value, out bool politicalEnabled))
+                                enablePoliticalConsequences = politicalEnabled;
+                            break;
+                        case "EnableMediaSpin":
+                            if (bool.TryParse(value, out bool mediaEnabled))
+                                enableMediaSpin = mediaEnabled;
+                            break;
+                        case "EnableBureaucracyHumor":
+                            if (bool.TryParse(value, out bool bureaucracyEnabled))
+                                enableBureaucracyHumor = bureaucracyEnabled;
+                            break;
                     }
                 }
 
-                Game.LogTrivial($"Config loaded - Boats: {startingBoatCount}, Waves: {maxWaves}, Per Wave: {boatsPerWave}, Audio: {enableAudio}, Spawn: {spawnLocation}");
+                Game.LogTrivial($"Config loaded - Victory Progressive: {useProgressiveVictoryAudio}, Political: {enablePoliticalConsequences}");
             }
             catch (Exception ex)
             {
@@ -203,7 +284,7 @@ namespace NarcoBoatsRPH
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
 
-                string defaultConfig = @"# Secretary of War Simulator: Operation Southern Spear
+                string defaultConfig = @"# Secretary of War Simulator v2.0: Operation Southern Spear
 # Configuration File
 
 # Hotkey to start the mission (F6, F7, F8, F9, F10, etc.)
@@ -232,6 +313,40 @@ EnableAudio=true
 
 # Audio volume (0.0 to 1.0, where 1.0 is max volume)
 AudioVolume=0.5
+
+# ====== NEW V2.0 FEATURES ======
+
+# Enable/disable victory audio at wave/mission completion (true/false)
+EnableVictoryAudio=true
+
+# Play victory audio after each wave completion (true/false)
+# If false, only plays at final mission completion
+PlayVictoryAudioAfterEachWave=true
+
+# Use progressive victory audio system (true/false)
+# When enabled: Wave 1 = Short, Wave 2 = Normal, Wave 3/Final = Long
+# When disabled: Always uses VictoryAudioNormal for all waves
+UseProgressiveVictoryAudio=true
+
+# Victory audio file names (must exist in AudioFolder)
+# These files are automatically excluded from random radio chatter
+VictoryAudioShort=trump_victory_short.wav
+VictoryAudioNormal=trump_victory.wav
+VictoryAudioLong=trump_victory_long.wav
+
+# Enable/disable escalating political consequences system (true/false)
+# This includes congressional hearings and Twitter trending
+EnablePoliticalConsequences=true
+
+# Enable/disable media spin notifications (true/false)
+# Liberal vs Conservative news coverage of your operations
+EnableMediaSpin=true
+
+# Enable/disable bureaucracy humor notifications (true/false)
+# Pentagon budget concerns, State Department approval delays, etc.
+EnableBureaucracyHumor=true
+
+# ====== END V2.0 FEATURES ======
 
 # Helicopter model (HUNTER, BUZZARD, SAVAGE, ANNIHILATOR)
 HelicopterModel=HUNTER
@@ -299,6 +414,9 @@ SpawnLocation=Random
                     // Play radio chatter using NAudio (NON-BLOCKING)
                     PlayRandomRadioChatter();
 
+                    // NEW V2.0: Show media spin after boat destruction
+                    ShowMediaSpinNotification();
+
                     // Remove blip
                     if (boatBlips[i] && boatBlips[i].IsValid())
                     {
@@ -309,6 +427,10 @@ SpawnLocation=Random
                     boatBlips.RemoveAt(i);
                     boatsDestroyed++;
                     totalKills++;
+
+                    // NEW V2.0: Escalate political heat
+                    politicalHeatLevel++;
+                    CheckPoliticalConsequences();
                 }
             }
 
@@ -339,6 +461,122 @@ SpawnLocation=Random
             }
         }
 
+        // NEW V2.0: Media Spin System
+        private static void ShowMediaSpinNotification()
+        {
+            if (!enableMediaSpin) return;
+
+            // 30% chance to show media spin after each kill
+            if (random.Next(100) < 30)
+            {
+                bool isLiberal = random.Next(2) == 0;
+                string outlet = isLiberal ? liberalOutlets[random.Next(liberalOutlets.Length)] : conservativeOutlets[random.Next(conservativeOutlets.Length)];
+
+                string message;
+
+                if (isLiberal)
+                {
+                    // Liberal outlets - negative spin
+                    string[] liberalMessages = new string[]
+                    {
+                        $"~b~{outlet}:~w~ \"Breaking: Secretary of War's reckless actions raise impeachment questions\"",
+                        $"~b~{outlet}:~w~ \"Anonymous sources say strike was 'purely political theater'\"",
+                        $"~b~{outlet}:~w~ \"Environmental groups condemn 'ecological disaster' caused by strikes\"",
+                        $"~b~{outlet}:~w~ \"International community 'deeply concerned' about unauthorized military action\"",
+                        $"~b~{outlet}:~w~ \"Democrats call for immediate congressional investigation into 'war crimes'\"",
+                        $"~b~{outlet}:~w~ \"UN Human Rights Council to review 'disproportionate use of force'\"",
+                        $"~b~{outlet}:~w~ \"Legal experts question constitutionality of unilateral strikes\"",
+                        $"~b~{outlet}:~w~ \"Fact-checkers dispute administration's claims about 'terrorist vessels'\"",
+                        $"~b~{outlet}:~w~ \"Sources: Secretary of War 'out of control' and 'ignoring chain of command'\"",
+                        $"~b~{outlet}:~w~ \"Opinion: This is exactly what fascism looks like\"",
+                    };
+                    message = liberalMessages[random.Next(liberalMessages.Length)];
+                }
+                else
+                {
+                    // Conservative outlets - positive spin
+                    string[] conservativeMessages = new string[]
+                    {
+                        $"~o~{outlet}:~w~ \"BREAKING: Secretary of War protects American lives with decisive action\"",
+                        $"~o~{outlet}:~w~ \"VICTORY: Another narco-terrorist vessel eliminated by our brave forces\"",
+                        $"~o~{outlet}:~w~ \"AMERICA FIRST: Secretary delivers on promise to secure our borders\"",
+                        $"~o~{outlet}:~w~ \"Patriots celebrate as cartels face consequences for their actions\"",
+                        $"~o~{outlet}:~w~ \"WINNING: This is what strong leadership looks like\"",
+                        $"~o~{outlet}:~w~ \"Secretary of War: 'We will not apologize for protecting Americans'\"",
+                        $"~o~{outlet}:~w~ \"Intelligence confirms targets were legitimate terrorist threats\"",
+                        $"~o~{outlet}:~w~ \"Military sources praise 'textbook operation' by Secretary's forces\"",
+                        $"~o~{outlet}:~w~ \"EXCLUSIVE: Secretary's approval rating surges among veterans\"",
+                        $"~o~{outlet}:~w~ \"Finally, a leader who puts American security first\"",
+                    };
+                    message = conservativeMessages[random.Next(conservativeMessages.Length)];
+                }
+
+                Game.DisplayNotification(message);
+            }
+        }
+
+        // NEW V2.0: Political Consequences System
+        private static void CheckPoliticalConsequences()
+        {
+            if (!enablePoliticalConsequences) return;
+
+            // First boat destroyed
+            if (politicalHeatLevel == 1)
+            {
+                Game.DisplayNotification("~g~MISSION SUCCESSFUL!~w~~n~Target eliminated. Operation proceeding as planned.");
+            }
+            // Second boat - Congressional hearing scheduled
+            else if (politicalHeatLevel == 2)
+            {
+                Game.DisplayNotification("~y~WASHINGTON UPDATE~w~~n~~o~Congressional oversight committee has scheduled a hearing.~w~~n~Prepare your classified briefing to defend your actions.~n~~n~~y~\"We have some questions, Mr. Secretary...\"");
+            }
+            // Third boat - Twitter trending
+            else if (politicalHeatLevel == 3)
+            {
+                Game.DisplayNotification("~r~TRENDING ON X~w~ (formerly Twitter)~n~~n~#WarCriminal trending #1~n~#SecretaryOfWar trending #3~n~#ImpeachNow trending #7~n~~n~~y~The internet has... opinions.");
+            }
+            // Subsequent boats - random escalations
+            else if (politicalHeatLevel > 3 && politicalHeatLevel % 2 == 0)
+            {
+                string[] escalations = new string[]
+                {
+                    "~r~CONGRESSIONAL ALERT~w~~n~House introduces impeachment resolution.~n~~n~~y~\"The Secretary has gone too far this time.\"",
+                    "~y~INTERNATIONAL REACTION~w~~n~UN Security Council calls emergency session.~n~~n~~o~Russia and China request your extradition.",
+                    "~o~WHITE HOUSE STATEMENT~w~~n~Press Secretary: \"The President maintains full confidence in the Secretary...~n~~y~for now.\"",
+                    "~r~BREAKING NEWS~w~~n~Special Prosecutor appointed to investigate operations.~n~~n~~y~Attorney General: \"No one is above the law.\"",
+                    "~y~PENTAGON MEMO~w~~n~Joint Chiefs 'concerned' about 'unorthodox tactics.'~n~~n~~o~Recommendation: Immediate stand-down for review.",
+                };
+
+                Game.DisplayNotification(escalations[random.Next(escalations.Length)]);
+            }
+        }
+
+        // NEW V2.0: Bureaucracy Humor System
+        private static void ShowBureaucracyHumor()
+        {
+            if (!enableBureaucracyHumor) return;
+
+            // 40% chance to show bureaucracy message during wave transitions
+            if (random.Next(100) < 40)
+            {
+                string[] bureaucracyMessages = new string[]
+                {
+                    "~y~PENTAGON ACCOUNTING~w~~n~\"Sir, you just used $4 million in missiles on a $50,000 boat.~n~~n~The CFO would like a word.\"",
+                    "~o~STATE DEPARTMENT~w~~n~\"Target approval requires 6-8 weeks for diplomatic review.~n~~n~Please submit Form DS-4207 in triplicate.\"",
+                    "~y~BUDGET COMMITTEE~w~~n~\"Each Hellfire missile costs $150,000.~n~~n~Have you considered... just asking them nicely to stop?\"",
+                    "~o~LEGAL DEPARTMENT~w~~n~\"Before engaging, please review our 47-page Rules of Engagement manual.~n~~n~Updated this morning.\"",
+                    "~y~PENTAGON MEMO~w~~n~\"Reminder: Proper authorization forms must be filed within 72 hours.~n~~n~Your stack is getting rather tall, sir.\"",
+                    "~o~COMPTROLLER'S OFFICE~w~~n~\"We've noticed a pattern of 'excessive ammunition expenditure.'~n~~n~Perhaps we should discuss efficiency targets?\"",
+                    "~y~STATE DEPARTMENT~w~~n~\"The Venezuelan ambassador would like to lodge a formal complaint.~n~~n~We've scheduled you for Tuesday at 3pm.\"",
+                    "~o~JOINT CHIEFS~w~~n~\"Sir, the Admiral wants to know why you're not using Navy assets.~n~~n~Inter-service rivalry is frowned upon.\"",
+                    "~y~HR DEPARTMENT~w~~n~\"You've exceeded your quarterly 'kinetic operations' allocation.~n~~n~Please see your supervisor about overtime approval.\"",
+                    "~o~ENVIRONMENTAL REVIEW~w~~n~\"Each operation requires an Environmental Impact Statement.~n~~n~Estimated completion: 18-24 months.\"",
+                };
+
+                Game.DisplayNotification(bureaucracyMessages[random.Next(bureaucracyMessages.Length)]);
+            }
+        }
+
         private static void StartMission()
         {
             try
@@ -355,12 +593,22 @@ SpawnLocation=Random
                 narcoBoats.Clear();
                 boatBlips.Clear();
 
+                // NEW V2.0: Reset political heat for new mission
+                politicalHeatLevel = 0;
+
                 Game.LocalPlayer.WantedLevel = 0;
                 Game.MaxWantedLevel = 0;
 
                 // Enhanced briefing
                 string rank = missionsDone < 5 ? "~w~" : missionsDone < 10 ? "~b~" : "~g~";
                 Game.DisplayNotification($"~r~CLASSIFIED OPERATION~w~~n~~b~OPERATION SOUTHERN SPEAR~w~~n~~n~Intelligence confirms narco-terrorist vessels approaching territorial waters.~n~~n~{rank}Mission #{missionsDone + 1}~w~~n~~r~ORDERS: ~w~Eliminate all hostile boats before they reach shore.~n~~n~~g~Weapons free, Mr. Secretary.");
+
+                // NEW V2.0: Show bureaucracy humor at mission start
+                if (enableBureaucracyHumor && random.Next(100) < 50)
+                {
+                    GameFiber.Sleep(3000);
+                    Game.DisplayNotification("~o~LEGAL REMINDER~w~~n~\"Sir, international maritime law requires...\"~n~~n~~r~*TRANSMISSION INTERRUPTED*");
+                }
 
                 // Get spawn location
                 Vector3 heliSpawn;
@@ -456,14 +704,25 @@ SpawnLocation=Random
 
         private static void WaveComplete()
         {
+            int completedWave = currentWave; // Store which wave just completed
             currentWave++;
 
             if (currentWave <= maxWaves)
             {
                 TimeSpan waveTime = DateTime.Now - missionStartTime;
-                Game.DisplayNotification($"~g~WAVE {currentWave - 1} COMPLETE~w~~n~All targets neutralized.~n~~n~Total Kills: ~g~{totalKills}~w~~n~Time: ~b~{(int)waveTime.TotalMinutes:D2}:{waveTime.Seconds:D2}~w~~n~~n~~y~Additional hostiles inbound...");
+                Game.DisplayNotification($"~g~WAVE {completedWave} COMPLETE~w~~n~All targets neutralized.~n~~n~Total Kills: ~g~{totalKills}~w~~n~Time: ~b~{(int)waveTime.TotalMinutes:D2}:{waveTime.Seconds:D2}~w~~n~~n~~y~Additional hostiles inbound...");
 
-                GameFiber.Sleep(4000);
+                // NEW V2.0: Play victory audio after wave completion (if enabled)
+                if (playVictoryAudioAfterEachWave)
+                {
+                    PlayVictoryAudioForWave(completedWave);
+                    GameFiber.Sleep(3000); // Give victory audio time to play
+                }
+
+                // NEW V2.0: Show bureaucracy humor between waves
+                GameFiber.Sleep(2000);
+                ShowBureaucracyHumor();
+                GameFiber.Sleep(2000);
 
                 int previousTotal = totalBoats;
                 SpawnBoatWave(previousTotal + boatsPerWave);
@@ -668,7 +927,28 @@ SpawnLocation=Random
                 else if (killsPerMinute > 2) rating = "~y~ADEQUATE";
                 else rating = "~o~NEEDS IMPROVEMENT";
 
-                Game.DisplayNotification($"~g~MISSION COMPLETE~w~~n~All hostile vessels neutralized.~n~~n~~b~MISSION STATS:~w~~n~Waves: ~y~{currentWave - 1}~w~ | Kills: ~g~{totalKills}~w~~n~Time: ~b~{timeString}~w~~n~Rating: {rating}~w~~n~~n~~w~Mission success, Mr. Secretary.~n~~n~~b~Career Stats:~w~~n~Missions: {missionsDone} | Best Waves: {bestWaveRecord}~n~~n~~y~Press {missionHotkey} for another operation");
+                // NEW V2.0: Final political consequences summary
+                string politicalStatus = "";
+                if (enablePoliticalConsequences)
+                {
+                    if (politicalHeatLevel >= 5)
+                    {
+                        politicalStatus = "~n~~n~~r~POLITICAL STATUS: CRITICAL~w~~n~Impeachment proceedings underway.~n~International arrest warrant pending.";
+                    }
+                    else if (politicalHeatLevel >= 3)
+                    {
+                        politicalStatus = "~n~~n~~y~POLITICAL STATUS: ELEVATED~w~~n~Congressional hearings scheduled.~n~#WarCriminal trending on X.";
+                    }
+                    else if (politicalHeatLevel >= 1)
+                    {
+                        politicalStatus = "~n~~n~~g~POLITICAL STATUS: STABLE~w~~n~Minimal media blowback.~n~White House approves.";
+                    }
+                }
+
+                Game.DisplayNotification($"~g~MISSION COMPLETE~w~~n~All hostile vessels neutralized.~n~~n~~b~MISSION STATS:~w~~n~Waves: ~y~{currentWave - 1}~w~ | Kills: ~g~{totalKills}~w~~n~Time: ~b~{timeString}~w~~n~Rating: {rating}~w~~n~~n~~w~Mission success, Mr. Secretary.{politicalStatus}~n~~n~~b~Career Stats:~w~~n~Missions: {missionsDone} | Best Waves: {bestWaveRecord}~n~~n~~y~Press {missionHotkey} for another operation");
+
+                // NEW V2.0: Play final victory audio (always plays the LONG version at mission end)
+                PlayVictoryAudioForWave(currentWave - 1);
             }
 
             // Cleanup
@@ -703,11 +983,11 @@ SpawnLocation=Random
 
             try
             {
-                // Get random audio file
+                // Get random audio file (victory audio already excluded during LoadAudioFiles)
                 string selectedFile = audioFiles[random.Next(audioFiles.Count)];
                 string fileName = Path.GetFileName(selectedFile);
 
-                Game.LogTrivial($"Playing audio: {fileName}");
+                Game.LogTrivial($"Playing radio chatter: {fileName}");
 
                 // Use NAudio in a background fiber
                 GameFiber.StartNew(() =>
@@ -755,6 +1035,102 @@ SpawnLocation=Random
             catch (Exception ex)
             {
                 Game.LogTrivial($"Audio system error: {ex.Message}");
+            }
+        }
+
+        // NEW V2.0: Progressive Victory Audio System
+        private static void PlayVictoryAudioForWave(int waveNumber)
+        {
+            if (!enableVictoryAudio)
+            {
+                return;
+            }
+
+            try
+            {
+                string victoryFile;
+
+                // Determine which victory audio to play
+                if (useProgressiveVictoryAudio)
+                {
+                    // Progressive system: Short -> Normal -> Long
+                    if (waveNumber == 1)
+                    {
+                        victoryFile = victoryAudioShort;
+                        Game.LogTrivial("Playing SHORT victory audio for Wave 1");
+                    }
+                    else if (waveNumber == 2)
+                    {
+                        victoryFile = victoryAudioNormal;
+                        Game.LogTrivial("Playing NORMAL victory audio for Wave 2");
+                    }
+                    else // Wave 3 or final mission
+                    {
+                        victoryFile = victoryAudioLong;
+                        Game.LogTrivial("Playing LONG victory audio for final wave/mission");
+                    }
+                }
+                else
+                {
+                    // Non-progressive: Always use normal version
+                    victoryFile = victoryAudioNormal;
+                    Game.LogTrivial($"Playing NORMAL victory audio (progressive disabled) for Wave {waveNumber}");
+                }
+
+                string victoryPath = Path.Combine(Directory.GetCurrentDirectory(), audioFolder, victoryFile);
+
+                if (!File.Exists(victoryPath))
+                {
+                    Game.LogTrivial($"Victory audio file not found: {victoryPath}");
+                    return;
+                }
+
+                // Use NAudio in a background fiber
+                GameFiber.StartNew(() =>
+                {
+                    try
+                    {
+                        // Stop any currently playing audio to give victory audio priority
+                        if (outputDevice != null && outputDevice.PlaybackState == PlaybackState.Playing)
+                        {
+                            outputDevice.Stop();
+                        }
+
+                        // Create new audio file reader
+                        var audioFile = new AudioFileReader(victoryPath);
+                        audioFile.Volume = audioVolume;
+
+                        // Create or reuse output device
+                        if (outputDevice == null)
+                        {
+                            outputDevice = new WaveOutEvent();
+                        }
+
+                        // Initialize and play
+                        outputDevice.Init(audioFile);
+                        outputDevice.Play();
+
+                        // Clean up when done (in background)
+                        GameFiber.StartNew(() =>
+                        {
+                            while (outputDevice != null && outputDevice.PlaybackState == PlaybackState.Playing)
+                            {
+                                GameFiber.Sleep(100);
+                            }
+
+                            // Dispose audio file reader
+                            audioFile?.Dispose();
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Game.LogTrivial($"Victory audio playback error: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Game.LogTrivial($"Victory audio system error: {ex.Message}");
             }
         }
     }
