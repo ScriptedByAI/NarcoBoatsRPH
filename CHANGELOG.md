@@ -64,22 +64,11 @@
   - `UseProgressiveVictoryAudio=true/false` - Escalating audio or same audio each time
   - `VictoryAudioShort/Normal/Long` - Customize filenames
 
-#### Configurable Notification Duration
-- New INI setting: `NotificationDuration` (in milliseconds)
-- Default: 8000ms (8 seconds) - up from GTA V's default 5 seconds
-- Range: 3000-15000ms (3-15 seconds)
-- Recommended settings:
-  - 8000ms - Good balance
-  - 10000ms - Perfect for savoring the comedy
-  - 12000ms - Maximum enjoyment mode
-- Applies to all humorous notifications (media spin, political consequences, bureaucracy humor, mission briefings)
-- Combat HUD timing unchanged (still updates every 100ms as designed)
-
 ### 🔧 Technical Improvements
 - Improved audio filtering system to prevent victory audio from playing during combat
-- Enhanced notification system with custom duration support using GTA V native functions
 - Better audio management with proper cleanup and priority handling
 - More robust error handling for notification display
+- Enhanced logging for debugging
 
 ### 📝 Configuration Changes
 **⚠️ IMPORTANT FOR v1.0 USERS**: Delete your existing `NarcoBoatsRPH.ini` file to allow the new configuration file with all v2.0 options to be generated automatically.
@@ -87,7 +76,6 @@
 New INI options added:
 ```ini
 # V2.0 Feature Controls
-NotificationDuration=8000
 EnableVictoryAudio=true
 PlayVictoryAudioAfterEachWave=true
 UseProgressiveVictoryAudio=true
@@ -102,7 +90,6 @@ EnableBureaucracyHumor=true
 All v1.0 settings remain compatible and unchanged.
 
 ### 🎨 Quality of Life Improvements
-- More time to read and appreciate humorous notifications
 - Victory celebrations that match mission intensity
 - Political fallout tracking adds narrative depth
 - Satirical media coverage enhances immersion
@@ -163,5 +150,5 @@ All v1.0 settings remain compatible and unchanged.
 ---
 
 **Developer**: TheTechSupportDude  
-**License**: MIT
-**GitHub**: [https://github.com/ScriptedByAI/NarcoBoatsRPH.git]
+**License**: MIT  
+**GitHub**: https://github.com/ScriptedByAI/NarcoBoatsRPH
